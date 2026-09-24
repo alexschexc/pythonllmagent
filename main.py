@@ -1,8 +1,10 @@
 import os
 import argparse
+import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from prompts import system_prompt
+from available_functions import available_functions
 
 def main():
     load_dotenv()
@@ -26,6 +28,7 @@ def main():
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
+        tools=available_functions,
     )
     if response is None:
         raise RuntimeError("LLM Response object empty.")
@@ -35,7 +38,15 @@ def main():
         print(f"Prompt tokens: {response.usage.prompt_tokens}")
         print(f"Response tokens: {response.usage.completion_tokens}")
 
-    print(f"Response: {response.choices[0].message.content}")
+    message = response.choices[0].message
+
+    if message.tool_calls:
+        for tool_call in message.tool_calls:
+            print(f'Calling function: {tool_call.function.name}({json.loads(tool_call.function.arguments or "{}")})')
+
+    else:
+        #no tools requested
+        print(message.content)
 
 if __name__ == "__main__":
     main()

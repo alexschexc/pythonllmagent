@@ -1,6 +1,24 @@
 import os
 from config import MAX_CHARS
 
+schema_get_file_content = {
+    "type": "function",
+    "function": {
+        "name": "get_file_content",
+        "description": "returns file contents, as a string, up to MAX_CHARS in size. If size is achieved, truncation warning is appended to the output",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "path to file to be read from",
+                },
+            },
+            "required": ["file_path"],
+        },
+    },
+}
+
 def get_file_content(working_directory: str, file_path: str) -> str:
     try:
         curr_directory = os.path.abspath(working_directory)

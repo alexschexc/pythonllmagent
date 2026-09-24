@@ -1,4 +1,5 @@
 import os
+
 schema_get_files_info = {
     "type": "function",
     "function": {
@@ -15,6 +16,7 @@ schema_get_files_info = {
         },
     },
 }
+
 def get_files_info(working_directory: str, directory: str = ".") -> str:
     try:
         curr_directory = os.path.abspath(working_directory)

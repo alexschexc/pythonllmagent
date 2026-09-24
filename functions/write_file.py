@@ -1,4 +1,25 @@
 import os
+schema_write_file = {
+    "type": "function",
+    "function": {
+        "name": "write_file",
+        "description": "Takes input as a string called content and writes it to file specified by the file_path, if it exists and/or is reachable, otherwise prints errors appropriate to what is not true.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "provided path to file that is intended to have content written into it",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "provided content string that is written to the file.",
+                },
+            },
+            "required":["file_path", "content"],
+        },
+    },
+}
 
 def write_file(working_directory: str, file_path: str, content: str) -> str:
     try:

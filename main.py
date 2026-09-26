@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from prompts import system_prompt
 from available_functions import available_functions
+from available_functions import call_function
 
 def main():
     load_dotenv()
@@ -33,6 +34,9 @@ def main():
     if response is None:
         raise RuntimeError("LLM Response object empty.")
 
+
+
+
     if args.verbose:
         print(f"User prompt: {user_prompt}")
         print(f"Prompt tokens: {response.usage.prompt_tokens}")
@@ -42,7 +46,11 @@ def main():
 
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            print(f'Calling function: {tool_call.function.name}({json.loads(tool_call.function.arguments or "{}")})')
+            result_message = call_function(tool_call=tool_call, verbose=args.verbose)
+            if not result_message["content"]:
+                raise Exception("Error: tool call has no content")
+            if args.verbose:
+                print(f"-> {result_message['content']}")
 
     else:
         #no tools requested

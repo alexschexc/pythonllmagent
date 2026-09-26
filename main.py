@@ -1,6 +1,5 @@
 import os
 import argparse
-import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from prompts import system_prompt
@@ -26,35 +25,40 @@ def main():
         api_key=api_key,
     )
 
-    response = client.chat.completions.create(
-        model="openrouter/free",
-        messages=messages,
-        tools=available_functions,
-    )
-    if response is None:
-        raise RuntimeError("LLM Response object empty.")
+    for _ in range(20):
+        response = client.chat.completions.create(
+            model="openrouter/free",
+            messages=messages,
+            tools=available_functions,
+        )
+        if response is None:
+            raise RuntimeError("LLM Response object empty.")
 
+        if args.verbose:
+            print(f"User prompt: {user_prompt}")
+            print(f"Prompt tokens: {response.usage.prompt_tokens}")
+            print(f"Response tokens: {response.usage.completion_tokens}")
 
+        message = response.choices[0].message
+        messages.append(message)
 
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                result_message = call_function(tool_call=tool_call, verbose=args.verbose)
+                messages.append(result_message)
+                if not result_message["content"]:
+                    raise Exception("Error: tool call has no content")
 
-    if args.verbose:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
-        print(f"Response tokens: {response.usage.completion_tokens}")
+                if args.verbose:
+                        print(f"-> {result_message['content']}")
 
-    message = response.choices[0].message
-
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            result_message = call_function(tool_call=tool_call, verbose=args.verbose)
-            if not result_message["content"]:
-                raise Exception("Error: tool call has no content")
-            if args.verbose:
-                print(f"-> {result_message['content']}")
+        else:
+            #no tools requested
+            print(message.content)
+            break
 
     else:
-        #no tools requested
-        print(message.content)
+        raise Exception("Error: call limit reached without finding response. Try again.")
 
 if __name__ == "__main__":
     main()
